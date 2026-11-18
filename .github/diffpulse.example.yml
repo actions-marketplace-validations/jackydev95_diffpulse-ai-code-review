@@ -1,0 +1,23 @@
+# Optional repository configuration for DiffPulse AI Code Review.
+# Place this file at `.github/diffpulse.yml` or `.diffpulse.yml`.
+
+custom_prompt: |
+  Pay close attention to input validation, authentication checks,
+  unhandled promise rejections, and backwards compatibility of public APIs.
+
+severity_threshold: low
+# fail_on_severity: critical
+
+include_patterns:
+  - "src/**"
+  - "tests/**"
+
+exclude_patterns:
+  - "**/*.generated.ts"
+  - "**/migrations/**"
+
+max_files: 40
+max_diff_chars: 24000
+max_comments: 25
+enable_heuristics: true
+skip_drafts: true

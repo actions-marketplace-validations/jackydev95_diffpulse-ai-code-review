@@ -1,0 +1,108 @@
+name: 'DiffPulse AI Code Review'
+description: 'Automated pull request code reviewer using OpenAI, Anthropic, Gemini, or custom LLMs with built-in security heuristics.'
+author: 'Jacky'
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  github-token:
+    description: 'GitHub token with pull-requests: write and contents: read permissions.'
+    required: false
+    default: ${{ github.token }}
+  provider:
+    description: 'Review engine provider: openai, anthropic, gemini, openai-compatible, or heuristic-only.'
+    required: false
+    default: 'openai'
+  api-key:
+    description: 'API key for the selected AI provider (not required for heuristic-only).'
+    required: false
+    default: ''
+  model:
+    description: 'Model identifier (defaults to gpt-4o-mini, claude-sonnet-4-20250514, or gemini-2.5-flash).'
+    required: false
+    default: ''
+  base-url:
+    description: 'Custom API base URL (required for openai-compatible, e.g. Groq, OpenRouter, Ollama, DeepSeek).'
+    required: false
+    default: ''
+  custom-prompt:
+    description: 'Additional repository-specific instructions appended to the review system prompt.'
+    required: false
+    default: ''
+  review-event:
+    description: 'GitHub PR review action: COMMENT, APPROVE, REQUEST_CHANGES, or AUTO.'
+    required: false
+    default: 'COMMENT'
+  severity-threshold:
+    description: 'Minimum severity to report: info, low, medium, high, or critical.'
+    required: false
+    default: 'low'
+  fail-on-severity:
+    description: 'Fail the workflow check if any finding reaches this severity (info, low, medium, high, critical, or none).'
+    required: false
+    default: 'none'
+  include-patterns:
+    description: 'Comma or newline-separated glob patterns of files to include (empty = all non-excluded files).'
+    required: false
+    default: ''
+  exclude-patterns:
+    description: 'Comma or newline-separated glob patterns of additional files to exclude.'
+    required: false
+    default: ''
+  max-files:
+    description: 'Maximum number of changed files to review per run.'
+    required: false
+    default: '40'
+  max-diff-chars:
+    description: 'Maximum diff character budget per AI batch request.'
+    required: false
+    default: '24000'
+  max-comments:
+    description: 'Maximum number of inline PR review comments to post.'
+    required: false
+    default: '25'
+  enable-heuristics:
+    description: 'Run deterministic security & debug-artifact heuristic checks in addition to AI review.'
+    required: false
+    default: 'true'
+  skip-drafts:
+    description: 'Skip reviewing draft pull requests.'
+    required: false
+    default: 'true'
+  update-summary-comment:
+    description: 'Create or update a single sticky PR summary comment instead of adding duplicate summary blocks.'
+    required: false
+    default: 'true'
+  temperature:
+    description: 'Sampling temperature for AI model responses (0 to 2).'
+    required: false
+    default: '0.1'
+  max-tokens:
+    description: 'Maximum output tokens requested per AI batch.'
+    required: false
+    default: '2500'
+  timeout-ms:
+    description: 'HTTP request timeout in milliseconds per AI call.'
+    required: false
+    default: '60000'
+  dry-run:
+    description: 'Run analysis without posting comments or reviews to GitHub.'
+    required: false
+    default: 'false'
+
+outputs:
+  summary:
+    description: 'Generated review summary text.'
+  issues-count:
+    description: 'Total number of reported findings at or above severity-threshold.'
+  critical-count:
+    description: 'Number of critical-severity findings.'
+  high-count:
+    description: 'Number of high-severity findings.'
+  review-status:
+    description: 'Execution outcome: completed, skipped, or failed.'
+
+runs:
+  using: 'node24'
+  main: 'dist/index.js'

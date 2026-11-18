@@ -1,0 +1,41 @@
+{
+  "name": "diffpulse-ai-code-review",
+  "version": "1.0.0",
+  "description": "AI-powered automatic pull request code reviewer GitHub Action supporting OpenAI, Anthropic, Gemini, and OpenAI-compatible models with built-in security & quality heuristics.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check:dist": "npm run build && git diff --exit-code dist/index.js",
+    "review:local": "npx tsx src/cli.ts"
+  },
+  "keywords": [
+    "github-action",
+    "code-review",
+    "ai-code-review",
+    "pull-request",
+    "openai",
+    "anthropic",
+    "gemini",
+    "static-analysis"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1",
+    "js-yaml": "^5.5.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.10.0",
+    "esbuild": "^0.24.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
