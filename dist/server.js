@@ -5534,7 +5534,7 @@ var require_request = __commonJS({
       channels.trailers = { hasSubscribers: false };
       channels.error = { hasSubscribers: false };
     }
-    var Request = class _Request {
+    var Request2 = class _Request {
       constructor(origin, {
         path,
         method,
@@ -5869,7 +5869,7 @@ var require_request = __commonJS({
         }
       }
     }
-    module2.exports = Request;
+    module2.exports = Request2;
   }
 });
 
@@ -6749,7 +6749,7 @@ var require_client = __commonJS({
     var { pipeline } = require("stream");
     var util = require_util();
     var timers = require_timers();
-    var Request = require_request();
+    var Request2 = require_request();
     var DispatcherBase = require_dispatcher_base();
     var {
       RequestContentLengthMismatchError,
@@ -7029,7 +7029,7 @@ var require_client = __commonJS({
       }
       [kDispatch](opts, handler) {
         const origin = opts.origin || this[kUrl].origin;
-        const request = this[kHTTPConnVersion] === "h2" ? Request[kHTTP2BuildRequest](origin, opts, handler) : Request[kHTTP1BuildRequest](origin, opts, handler);
+        const request = this[kHTTPConnVersion] === "h2" ? Request2[kHTTP2BuildRequest](origin, opts, handler) : Request2[kHTTP1BuildRequest](origin, opts, handler);
         this[kQueue].push(request);
         if (this[kResuming]) {
         } else if (util.bodyLength(request.body) == null && util.isIterable(request.body)) {
@@ -7982,7 +7982,7 @@ upgrade: ${upgrade}\r
     function writeH2(client, session, request) {
       const { body, method, path, host, upgrade, expectContinue, signal, headers: reqHeaders } = request;
       let headers;
-      if (typeof reqHeaders === "string") headers = Request[kHTTP2CopyHeaders](reqHeaders.trim());
+      if (typeof reqHeaders === "string") headers = Request2[kHTTP2CopyHeaders](reqHeaders.trim());
       else headers = reqHeaders;
       if (upgrade) {
         errorRequest(client, request, new Error("Upgrade not supported for H2"));
@@ -11574,7 +11574,7 @@ var require_headers = __commonJS({
         return headers;
       }
     };
-    var Headers = class _Headers {
+    var Headers2 = class _Headers {
       constructor(init = void 0) {
         if (init === kConstruct) {
           return;
@@ -11769,8 +11769,8 @@ var require_headers = __commonJS({
         return this[kHeadersList];
       }
     };
-    Headers.prototype[Symbol.iterator] = Headers.prototype.entries;
-    Object.defineProperties(Headers.prototype, {
+    Headers2.prototype[Symbol.iterator] = Headers2.prototype.entries;
+    Object.defineProperties(Headers2.prototype, {
       append: kEnumerableProperty,
       delete: kEnumerableProperty,
       get: kEnumerableProperty,
@@ -11805,7 +11805,7 @@ var require_headers = __commonJS({
     };
     module2.exports = {
       fill,
-      Headers,
+      Headers: Headers2,
       HeadersList
     };
   }
@@ -11815,7 +11815,7 @@ var require_headers = __commonJS({
 var require_response = __commonJS({
   "node_modules/undici/lib/fetch/response.js"(exports2, module2) {
     "use strict";
-    var { Headers, HeadersList, fill } = require_headers();
+    var { Headers: Headers2, HeadersList, fill } = require_headers();
     var { extractBody, cloneBody, mixinBody } = require_body();
     var util = require_util();
     var { kEnumerableProperty } = util;
@@ -11843,7 +11843,7 @@ var require_response = __commonJS({
     var { types } = require("util");
     var ReadableStream = globalThis.ReadableStream || require("stream/web").ReadableStream;
     var textEncoder = new TextEncoder("utf-8");
-    var Response = class _Response {
+    var Response2 = class _Response {
       // Creates network error Response.
       static error() {
         const relevantRealm = { settingsObject: {} };
@@ -11907,7 +11907,7 @@ var require_response = __commonJS({
         init = webidl.converters.ResponseInit(init);
         this[kRealm] = { settingsObject: {} };
         this[kState] = makeResponse({});
-        this[kHeaders] = new Headers(kConstruct);
+        this[kHeaders] = new Headers2(kConstruct);
         this[kHeaders][kGuard] = "response";
         this[kHeaders][kHeadersList] = this[kState].headersList;
         this[kHeaders][kRealm] = this[kRealm];
@@ -11985,8 +11985,8 @@ var require_response = __commonJS({
         return clonedResponseObject;
       }
     };
-    mixinBody(Response);
-    Object.defineProperties(Response.prototype, {
+    mixinBody(Response2);
+    Object.defineProperties(Response2.prototype, {
       type: kEnumerableProperty,
       url: kEnumerableProperty,
       status: kEnumerableProperty,
@@ -12002,7 +12002,7 @@ var require_response = __commonJS({
         configurable: true
       }
     });
-    Object.defineProperties(Response, {
+    Object.defineProperties(Response2, {
       json: kEnumerableProperty,
       redirect: kEnumerableProperty,
       error: kEnumerableProperty
@@ -12184,7 +12184,7 @@ var require_response = __commonJS({
       makeResponse,
       makeAppropriateNetworkError,
       filterResponse,
-      Response,
+      Response: Response2,
       cloneResponse
     };
   }
@@ -12195,7 +12195,7 @@ var require_request2 = __commonJS({
   "node_modules/undici/lib/fetch/request.js"(exports2, module2) {
     "use strict";
     var { extractBody, mixinBody, cloneBody } = require_body();
-    var { Headers, fill: fillHeaders, HeadersList } = require_headers();
+    var { Headers: Headers2, fill: fillHeaders, HeadersList } = require_headers();
     var { FinalizationRegistry } = require_dispatcher_weakref()();
     var util = require_util();
     var {
@@ -12228,7 +12228,7 @@ var require_request2 = __commonJS({
     var requestFinalizer = new FinalizationRegistry(({ signal, abort }) => {
       signal.removeEventListener("abort", abort);
     });
-    var Request = class _Request {
+    var Request2 = class _Request {
       // https://fetch.spec.whatwg.org/#dom-request
       constructor(input, init = {}) {
         if (input === kConstruct) {
@@ -12439,7 +12439,7 @@ var require_request2 = __commonJS({
             requestFinalizer.register(ac, { signal, abort });
           }
         }
-        this[kHeaders] = new Headers(kConstruct);
+        this[kHeaders] = new Headers2(kConstruct);
         this[kHeaders][kHeadersList] = request.headersList;
         this[kHeaders][kGuard] = "request";
         this[kHeaders][kRealm] = this[kRealm];
@@ -12638,7 +12638,7 @@ var require_request2 = __commonJS({
         const clonedRequestObject = new _Request(kConstruct);
         clonedRequestObject[kState] = clonedRequest;
         clonedRequestObject[kRealm] = this[kRealm];
-        clonedRequestObject[kHeaders] = new Headers(kConstruct);
+        clonedRequestObject[kHeaders] = new Headers2(kConstruct);
         clonedRequestObject[kHeaders][kHeadersList] = clonedRequest.headersList;
         clonedRequestObject[kHeaders][kGuard] = this[kHeaders][kGuard];
         clonedRequestObject[kHeaders][kRealm] = this[kHeaders][kRealm];
@@ -12657,7 +12657,7 @@ var require_request2 = __commonJS({
         return clonedRequestObject;
       }
     };
-    mixinBody(Request);
+    mixinBody(Request2);
     function makeRequest(init) {
       const request = {
         method: "GET",
@@ -12708,7 +12708,7 @@ var require_request2 = __commonJS({
       }
       return newRequest;
     }
-    Object.defineProperties(Request.prototype, {
+    Object.defineProperties(Request2.prototype, {
       method: kEnumerableProperty,
       url: kEnumerableProperty,
       headers: kEnumerableProperty,
@@ -12735,13 +12735,13 @@ var require_request2 = __commonJS({
       }
     });
     webidl.converters.Request = webidl.interfaceConverter(
-      Request
+      Request2
     );
     webidl.converters.RequestInfo = function(V) {
       if (typeof V === "string") {
         return webidl.converters.USVString(V);
       }
-      if (V instanceof Request) {
+      if (V instanceof Request2) {
         return webidl.converters.Request(V);
       }
       return webidl.converters.USVString(V);
@@ -12825,7 +12825,7 @@ var require_request2 = __commonJS({
         allowedValues: requestDuplex
       }
     ]);
-    module2.exports = { Request, makeRequest };
+    module2.exports = { Request: Request2, makeRequest };
   }
 });
 
@@ -12834,14 +12834,14 @@ var require_fetch = __commonJS({
   "node_modules/undici/lib/fetch/index.js"(exports2, module2) {
     "use strict";
     var {
-      Response,
+      Response: Response2,
       makeNetworkError,
       makeAppropriateNetworkError,
       filterResponse,
       makeResponse
     } = require_response();
-    var { Headers } = require_headers();
-    var { Request, makeRequest } = require_request2();
+    var { Headers: Headers2 } = require_headers();
+    var { Request: Request2, makeRequest } = require_request2();
     var zlib = require("zlib");
     var {
       bytesMatch,
@@ -12932,7 +12932,7 @@ var require_fetch = __commonJS({
       const p = createDeferredPromise();
       let requestObject;
       try {
-        requestObject = new Request(input, init);
+        requestObject = new Request2(input, init);
       } catch (e) {
         p.reject(e);
         return p.promise;
@@ -12974,7 +12974,7 @@ var require_fetch = __commonJS({
           );
           return Promise.resolve();
         }
-        responseObject = new Response();
+        responseObject = new Response2();
         responseObject[kState] = response;
         responseObject[kRealm] = relevantRealm;
         responseObject[kHeaders][kHeadersList] = response.headersList;
@@ -13753,7 +13753,7 @@ var require_fetch = __commonJS({
               }
               let codings = [];
               let location = "";
-              const headers = new Headers();
+              const headers = new Headers2();
               if (Array.isArray(headersList)) {
                 for (let n = 0; n < headersList.length; n += 2) {
                   const key = headersList[n + 0].toString("latin1");
@@ -13838,7 +13838,7 @@ var require_fetch = __commonJS({
               if (status !== 101) {
                 return;
               }
-              const headers = new Headers();
+              const headers = new Headers2();
               for (let n = 0; n < headersList.length; n += 2) {
                 const key = headersList[n + 0].toString("latin1");
                 const val = headersList[n + 1].toString("latin1");
@@ -14731,8 +14731,8 @@ var require_cache = __commonJS({
     var { kEnumerableProperty, isDisturbed } = require_util();
     var { kHeadersList } = require_symbols();
     var { webidl } = require_webidl();
-    var { Response, cloneResponse } = require_response();
-    var { Request } = require_request2();
+    var { Response: Response2, cloneResponse } = require_response();
+    var { Request: Request2 } = require_request2();
     var { kState, kHeaders, kGuard, kRealm } = require_symbols2();
     var { fetching } = require_fetch();
     var { urlIsHttpHttpsScheme, createDeferredPromise, readAllBytes } = require_util2();
@@ -14767,13 +14767,13 @@ var require_cache = __commonJS({
         options = webidl.converters.CacheQueryOptions(options);
         let r = null;
         if (request !== void 0) {
-          if (request instanceof Request) {
+          if (request instanceof Request2) {
             r = request[kState];
             if (r.method !== "GET" && !options.ignoreMethod) {
               return [];
             }
           } else if (typeof request === "string") {
-            r = new Request(request)[kState];
+            r = new Request2(request)[kState];
           }
         }
         const responses = [];
@@ -14789,7 +14789,7 @@ var require_cache = __commonJS({
         }
         const responseList = [];
         for (const response of responses) {
-          const responseObject = new Response(response.body?.source ?? null);
+          const responseObject = new Response2(response.body?.source ?? null);
           const body = responseObject[kState].body;
           responseObject[kState] = response;
           responseObject[kState].body = body;
@@ -14827,7 +14827,7 @@ var require_cache = __commonJS({
         }
         const fetchControllers = [];
         for (const request of requests) {
-          const r = new Request(request)[kState];
+          const r = new Request2(request)[kState];
           if (!urlIsHttpHttpsScheme(r.url)) {
             throw webidl.errors.exception({
               header: "Cache.addAll",
@@ -14911,10 +14911,10 @@ var require_cache = __commonJS({
         request = webidl.converters.RequestInfo(request);
         response = webidl.converters.Response(response);
         let innerRequest = null;
-        if (request instanceof Request) {
+        if (request instanceof Request2) {
           innerRequest = request[kState];
         } else {
-          innerRequest = new Request(request)[kState];
+          innerRequest = new Request2(request)[kState];
         }
         if (!urlIsHttpHttpsScheme(innerRequest.url) || innerRequest.method !== "GET") {
           throw webidl.errors.exception({
@@ -14991,14 +14991,14 @@ var require_cache = __commonJS({
         request = webidl.converters.RequestInfo(request);
         options = webidl.converters.CacheQueryOptions(options);
         let r = null;
-        if (request instanceof Request) {
+        if (request instanceof Request2) {
           r = request[kState];
           if (r.method !== "GET" && !options.ignoreMethod) {
             return false;
           }
         } else {
           assert(typeof request === "string");
-          r = new Request(request)[kState];
+          r = new Request2(request)[kState];
         }
         const operations = [];
         const operation = {
@@ -15036,13 +15036,13 @@ var require_cache = __commonJS({
         options = webidl.converters.CacheQueryOptions(options);
         let r = null;
         if (request !== void 0) {
-          if (request instanceof Request) {
+          if (request instanceof Request2) {
             r = request[kState];
             if (r.method !== "GET" && !options.ignoreMethod) {
               return [];
             }
           } else if (typeof request === "string") {
-            r = new Request(request)[kState];
+            r = new Request2(request)[kState];
           }
         }
         const promise = createDeferredPromise();
@@ -15060,7 +15060,7 @@ var require_cache = __commonJS({
         queueMicrotask(() => {
           const requestList = [];
           for (const request2 of requests) {
-            const requestObject = new Request("https://a");
+            const requestObject = new Request2("https://a");
             requestObject[kState] = request2;
             requestObject[kHeaders][kHeadersList] = request2.headersList;
             requestObject[kHeaders][kGuard] = "immutable";
@@ -15244,7 +15244,7 @@ var require_cache = __commonJS({
         converter: webidl.converters.DOMString
       }
     ]);
-    webidl.converters.Response = webidl.interfaceConverter(Response);
+    webidl.converters.Response = webidl.interfaceConverter(Response2);
     webidl.converters["sequence<RequestInfo>"] = webidl.sequenceConverter(
       webidl.converters.RequestInfo
     );
@@ -15665,10 +15665,10 @@ var require_cookies = __commonJS({
     var { parseSetCookie } = require_parse();
     var { stringify } = require_util6();
     var { webidl } = require_webidl();
-    var { Headers } = require_headers();
+    var { Headers: Headers2 } = require_headers();
     function getCookies(headers) {
       webidl.argumentLengthCheck(arguments, 1, { header: "getCookies" });
-      webidl.brandCheck(headers, Headers, { strict: false });
+      webidl.brandCheck(headers, Headers2, { strict: false });
       const cookie = headers.get("cookie");
       const out = {};
       if (!cookie) {
@@ -15682,7 +15682,7 @@ var require_cookies = __commonJS({
     }
     function deleteCookie(headers, name, attributes) {
       webidl.argumentLengthCheck(arguments, 2, { header: "deleteCookie" });
-      webidl.brandCheck(headers, Headers, { strict: false });
+      webidl.brandCheck(headers, Headers2, { strict: false });
       name = webidl.converters.DOMString(name);
       attributes = webidl.converters.DeleteCookieAttributes(attributes);
       setCookie(headers, {
@@ -15694,7 +15694,7 @@ var require_cookies = __commonJS({
     }
     function getSetCookies(headers) {
       webidl.argumentLengthCheck(arguments, 1, { header: "getSetCookies" });
-      webidl.brandCheck(headers, Headers, { strict: false });
+      webidl.brandCheck(headers, Headers2, { strict: false });
       const cookies = headers.getSetCookie();
       if (!cookies) {
         return [];
@@ -15703,7 +15703,7 @@ var require_cookies = __commonJS({
     }
     function setCookie(headers, cookie) {
       webidl.argumentLengthCheck(arguments, 2, { header: "setCookie" });
-      webidl.brandCheck(headers, Headers, { strict: false });
+      webidl.brandCheck(headers, Headers2, { strict: false });
       cookie = webidl.converters.Cookie(cookie);
       const str = stringify(cookie);
       if (str) {
@@ -16196,7 +16196,7 @@ var require_connection = __commonJS({
     var { CloseEvent } = require_events();
     var { makeRequest } = require_request2();
     var { fetching } = require_fetch();
-    var { Headers } = require_headers();
+    var { Headers: Headers2 } = require_headers();
     var { getGlobalDispatcher } = require_global2();
     var { kHeadersList } = require_symbols();
     var channels = {};
@@ -16221,7 +16221,7 @@ var require_connection = __commonJS({
         redirect: "error"
       });
       if (options.headers) {
-        const headersList = new Headers(options.headers)[kHeadersList];
+        const headersList = new Headers2(options.headers)[kHeadersList];
         request.headersList = headersList;
       }
       const keyValue = crypto.randomBytes(16).toString("base64");
@@ -17260,11 +17260,11 @@ var require_lib = __commonJS({
       HttpCodes2[HttpCodes2["ServiceUnavailable"] = 503] = "ServiceUnavailable";
       HttpCodes2[HttpCodes2["GatewayTimeout"] = 504] = "GatewayTimeout";
     })(HttpCodes || (exports2.HttpCodes = HttpCodes = {}));
-    var Headers;
-    (function(Headers2) {
-      Headers2["Accept"] = "accept";
-      Headers2["ContentType"] = "content-type";
-    })(Headers || (exports2.Headers = Headers = {}));
+    var Headers2;
+    (function(Headers3) {
+      Headers3["Accept"] = "accept";
+      Headers3["ContentType"] = "content-type";
+    })(Headers2 || (exports2.Headers = Headers2 = {}));
     var MediaTypes;
     (function(MediaTypes2) {
       MediaTypes2["ApplicationJson"] = "application/json";
@@ -17419,7 +17419,7 @@ var require_lib = __commonJS({
        */
       getJson(requestUrl, additionalHeaders = {}) {
         return __awaiter(this, void 0, void 0, function* () {
-          additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
+          additionalHeaders[Headers2.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers2.Accept, MediaTypes.ApplicationJson);
           const res = yield this.get(requestUrl, additionalHeaders);
           return this._processResponse(res, this.requestOptions);
         });
@@ -17427,8 +17427,8 @@ var require_lib = __commonJS({
       postJson(requestUrl, obj, additionalHeaders = {}) {
         return __awaiter(this, void 0, void 0, function* () {
           const data = JSON.stringify(obj, null, 2);
-          additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
-          additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
+          additionalHeaders[Headers2.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers2.Accept, MediaTypes.ApplicationJson);
+          additionalHeaders[Headers2.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers2.ContentType, MediaTypes.ApplicationJson);
           const res = yield this.post(requestUrl, data, additionalHeaders);
           return this._processResponse(res, this.requestOptions);
         });
@@ -17436,8 +17436,8 @@ var require_lib = __commonJS({
       putJson(requestUrl, obj, additionalHeaders = {}) {
         return __awaiter(this, void 0, void 0, function* () {
           const data = JSON.stringify(obj, null, 2);
-          additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
-          additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
+          additionalHeaders[Headers2.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers2.Accept, MediaTypes.ApplicationJson);
+          additionalHeaders[Headers2.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers2.ContentType, MediaTypes.ApplicationJson);
           const res = yield this.put(requestUrl, data, additionalHeaders);
           return this._processResponse(res, this.requestOptions);
         });
@@ -17445,8 +17445,8 @@ var require_lib = __commonJS({
       patchJson(requestUrl, obj, additionalHeaders = {}) {
         return __awaiter(this, void 0, void 0, function* () {
           const data = JSON.stringify(obj, null, 2);
-          additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
-          additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
+          additionalHeaders[Headers2.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers2.Accept, MediaTypes.ApplicationJson);
+          additionalHeaders[Headers2.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers2.ContentType, MediaTypes.ApplicationJson);
           const res = yield this.patch(requestUrl, data, additionalHeaders);
           return this._processResponse(res, this.requestOptions);
         });
@@ -21803,6 +21803,206 @@ __export(server_exports, {
 module.exports = __toCommonJS(server_exports);
 var import_node_http = require("node:http");
 
+// src/app/fileStore.ts
+var import_node_fs = require("node:fs");
+var import_node_path = require("node:path");
+
+// src/app/store.ts
+function currentYearMonth(now = /* @__PURE__ */ new Date()) {
+  const year = now.getUTCFullYear();
+  const month = String(now.getUTCMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+var SubscriptionStore = class {
+  records = /* @__PURE__ */ new Map();
+  get(accountId) {
+    return this.records.get(accountId);
+  }
+  list() {
+    return Array.from(this.records.values());
+  }
+  upsert(subscription) {
+    this.records.set(subscription.accountId, subscription);
+    return subscription;
+  }
+  /**
+   * Checks monthly PR review quota for an account (defaulting to Free plan if no subscription exists)
+   * and increments usage when allowed.
+   */
+  consumeReviewQuota(account, plans, now = /* @__PURE__ */ new Date()) {
+    const freePlan = plans.find((p) => p.key === "free") ?? plans[0];
+    const ym = currentYearMonth(now);
+    let sub = this.records.get(account.id);
+    if (!sub || sub.status === "cancelled") {
+      sub = {
+        accountId: account.id,
+        accountLogin: account.login,
+        accountType: account.type,
+        planId: freePlan.marketplacePlanId,
+        planName: freePlan.name,
+        pricingModel: freePlan.pricingModel,
+        billingCycle: "monthly",
+        unitCount: 1,
+        onFreeTrial: false,
+        freeTrialEndsOn: null,
+        effectiveDate: now.toISOString(),
+        status: "active",
+        usageMonth: ym,
+        reviewsUsedThisMonth: 0,
+        updatedAt: now.toISOString()
+      };
+    }
+    if (sub.usageMonth !== ym) {
+      sub = {
+        ...sub,
+        usageMonth: ym,
+        reviewsUsedThisMonth: 0
+      };
+    }
+    const plan = plans.find((p) => p.marketplacePlanId === sub.planId) ?? freePlan;
+    const limit = plan.entitlements.maxPrReviewsPerMonth;
+    if (limit !== null && sub.reviewsUsedThisMonth >= limit) {
+      this.upsert(sub);
+      return {
+        allowed: false,
+        reason: `Monthly PR review limit reached (${sub.reviewsUsedThisMonth}/${limit}) on the ${plan.name} plan.`,
+        subscription: sub,
+        plan
+      };
+    }
+    const updated = {
+      ...sub,
+      reviewsUsedThisMonth: sub.reviewsUsedThisMonth + 1,
+      updatedAt: now.toISOString()
+    };
+    this.upsert(updated);
+    return {
+      allowed: true,
+      subscription: updated,
+      plan
+    };
+  }
+};
+
+// src/app/fileStore.ts
+var FileSubscriptionStore = class extends SubscriptionStore {
+  filePath;
+  constructor(filePath) {
+    super();
+    this.filePath = filePath;
+    if ((0, import_node_fs.existsSync)(filePath)) {
+      this.loadFromDisk(filePath);
+    }
+  }
+  upsert(subscription) {
+    const saved = super.upsert(subscription);
+    this.persist();
+    return saved;
+  }
+  loadFromDisk(path) {
+    try {
+      const raw = (0, import_node_fs.readFileSync)(path, "utf8");
+      const items = JSON.parse(raw);
+      if (Array.isArray(items)) {
+        for (const item of items) {
+          if (item && typeof item.accountId === "number") {
+            this.records.set(item.accountId, item);
+          }
+        }
+      }
+    } catch {
+    }
+  }
+  persist() {
+    (0, import_node_fs.mkdirSync)((0, import_node_path.dirname)(this.filePath), { recursive: true });
+    (0, import_node_fs.writeFileSync)(
+      this.filePath,
+      JSON.stringify(Array.from(this.records.values()), null, 2),
+      "utf8"
+    );
+  }
+};
+
+// src/app/plans.ts
+function parsePlanId(envVal, fallback) {
+  const parsed = envVal ? Number.parseInt(envVal, 10) : Number.NaN;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+function getMarketplacePlans(env = process.env) {
+  return [
+    {
+      key: "free",
+      marketplacePlanId: parsePlanId(env.PLAN_ID_FREE, 1),
+      name: "Free",
+      pricingModel: "free",
+      monthlyPriceUsd: 0,
+      yearlyPriceUsd: 0,
+      freeTrialDays: 0,
+      bullets: [
+        "Deterministic security & secret-leak heuristics",
+        "Up to 50 pull request reviews per month",
+        "Up to 20 changed files per review",
+        "Sticky PR summary comments"
+      ],
+      entitlements: {
+        aiEnabled: false,
+        maxPrReviewsPerMonth: 50,
+        maxFilesPerReview: 20,
+        maxDiffChars: 16e3,
+        allowCustomPrompt: false
+      }
+    },
+    {
+      key: "pro",
+      marketplacePlanId: parsePlanId(env.PLAN_ID_PRO, 2),
+      name: "Pro Team",
+      pricingModel: "flat-rate",
+      monthlyPriceUsd: 29,
+      yearlyPriceUsd: 290,
+      freeTrialDays: 14,
+      bullets: [
+        "Full AI code review (OpenAI, Anthropic, or Gemini)",
+        "Up to 500 pull request reviews per month",
+        "Line-anchored inline PR review comments",
+        "Custom .github/diffpulse.yml rules & prompts"
+      ],
+      entitlements: {
+        aiEnabled: true,
+        maxPrReviewsPerMonth: 500,
+        maxFilesPerReview: 40,
+        maxDiffChars: 24e3,
+        allowCustomPrompt: true
+      }
+    },
+    {
+      key: "business",
+      marketplacePlanId: parsePlanId(env.PLAN_ID_BUSINESS, 3),
+      name: "Business",
+      pricingModel: "per-unit",
+      monthlyPriceUsd: 12,
+      yearlyPriceUsd: 120,
+      unitName: "seat",
+      freeTrialDays: 14,
+      bullets: [
+        "Everything in Pro Team, scaled per developer seat",
+        "Unlimited pull request reviews per month",
+        "Up to 100 changed files & 48k diff budget per review",
+        "Priority AI model routing & AUTO review approvals"
+      ],
+      entitlements: {
+        aiEnabled: true,
+        maxPrReviewsPerMonth: null,
+        maxFilesPerReview: 100,
+        maxDiffChars: 48e3,
+        allowCustomPrompt: true
+      }
+    }
+  ];
+}
+function findPlanByMarketplaceId(planId, plans) {
+  return plans.find((plan) => plan.marketplacePlanId === planId);
+}
+
 // src/app/billingPage.ts
 function escapeHtml(text) {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
@@ -21898,86 +22098,6 @@ function renderBillingDashboardHtml(options) {
   </div>
 </body>
 </html>`;
-}
-
-// src/app/plans.ts
-function parsePlanId(envVal, fallback) {
-  const parsed = envVal ? Number.parseInt(envVal, 10) : Number.NaN;
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
-}
-function getMarketplacePlans(env = process.env) {
-  return [
-    {
-      key: "free",
-      marketplacePlanId: parsePlanId(env.PLAN_ID_FREE, 1),
-      name: "Free",
-      pricingModel: "free",
-      monthlyPriceUsd: 0,
-      yearlyPriceUsd: 0,
-      freeTrialDays: 0,
-      bullets: [
-        "Deterministic security & secret-leak heuristics",
-        "Up to 50 pull request reviews per month",
-        "Up to 20 changed files per review",
-        "Sticky PR summary comments"
-      ],
-      entitlements: {
-        aiEnabled: false,
-        maxPrReviewsPerMonth: 50,
-        maxFilesPerReview: 20,
-        maxDiffChars: 16e3,
-        allowCustomPrompt: false
-      }
-    },
-    {
-      key: "pro",
-      marketplacePlanId: parsePlanId(env.PLAN_ID_PRO, 2),
-      name: "Pro Team",
-      pricingModel: "flat-rate",
-      monthlyPriceUsd: 29,
-      yearlyPriceUsd: 290,
-      freeTrialDays: 14,
-      bullets: [
-        "Full AI code review (OpenAI, Anthropic, or Gemini)",
-        "Up to 500 pull request reviews per month",
-        "Line-anchored inline PR review comments",
-        "Custom .github/diffpulse.yml rules & prompts"
-      ],
-      entitlements: {
-        aiEnabled: true,
-        maxPrReviewsPerMonth: 500,
-        maxFilesPerReview: 40,
-        maxDiffChars: 24e3,
-        allowCustomPrompt: true
-      }
-    },
-    {
-      key: "business",
-      marketplacePlanId: parsePlanId(env.PLAN_ID_BUSINESS, 3),
-      name: "Business",
-      pricingModel: "per-unit",
-      monthlyPriceUsd: 12,
-      yearlyPriceUsd: 120,
-      unitName: "seat",
-      freeTrialDays: 14,
-      bullets: [
-        "Everything in Pro Team, scaled per developer seat",
-        "Unlimited pull request reviews per month",
-        "Up to 100 changed files & 48k diff budget per review",
-        "Priority AI model routing & AUTO review approvals"
-      ],
-      entitlements: {
-        aiEnabled: true,
-        maxPrReviewsPerMonth: null,
-        maxFilesPerReview: 100,
-        maxDiffChars: 48e3,
-        allowCustomPrompt: true
-      }
-    }
-  ];
-}
-function findPlanByMarketplaceId(planId, plans) {
-  return plans.find((plan) => plan.marketplacePlanId === planId);
 }
 
 // src/app/marketplace.ts
@@ -25976,133 +26096,105 @@ function verifyGitHubWebhookSignature(rawBody, signatureHeader, secret) {
   return (0, import_node_crypto2.timingSafeEqual)(expected, actual);
 }
 
-// src/app/store.ts
-var import_node_fs = require("node:fs");
-var import_node_path = require("node:path");
-function currentYearMonth(now = /* @__PURE__ */ new Date()) {
-  const year = now.getUTCFullYear();
-  const month = String(now.getUTCMonth() + 1).padStart(2, "0");
-  return `${year}-${month}`;
+// src/app/router.ts
+function jsonResponse(status, data) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8" }
+  });
 }
-var SubscriptionStore = class {
-  records = /* @__PURE__ */ new Map();
-  filePath;
-  constructor(filePath) {
-    this.filePath = filePath;
-    if (filePath && (0, import_node_fs.existsSync)(filePath)) {
-      this.loadFromDisk(filePath);
+function htmlResponse(status, html) {
+  return new Response(html, {
+    status,
+    headers: { "Content-Type": "text/html; charset=utf-8" }
+  });
+}
+function resolveRoutePath(url) {
+  const rewritten = url.searchParams.get("__route");
+  if (rewritten !== null) {
+    return rewritten.startsWith("/") ? rewritten : `/${rewritten}`;
+  }
+  return url.pathname;
+}
+async function handleAppRequest(request, ctx) {
+  try {
+    const url = new URL(request.url);
+    const pathname = resolveRoutePath(url);
+    const method = request.method.toUpperCase();
+    if (method === "GET" && pathname === "/health") {
+      return jsonResponse(200, { ok: true, service: "diffpulse-github-app" });
     }
-  }
-  get(accountId) {
-    return this.records.get(accountId);
-  }
-  list() {
-    return Array.from(this.records.values());
-  }
-  upsert(subscription) {
-    this.records.set(subscription.accountId, subscription);
-    this.persist();
-    return subscription;
-  }
-  /**
-   * Checks monthly PR review quota for an account (defaulting to Free plan if no subscription exists)
-   * and increments usage when allowed.
-   */
-  consumeReviewQuota(account, plans, now = /* @__PURE__ */ new Date()) {
-    const freePlan = plans.find((p) => p.key === "free") ?? plans[0];
-    const ym = currentYearMonth(now);
-    let sub = this.records.get(account.id);
-    if (!sub || sub.status === "cancelled") {
-      sub = {
-        accountId: account.id,
-        accountLogin: account.login,
-        accountType: account.type,
-        planId: freePlan.marketplacePlanId,
-        planName: freePlan.name,
-        pricingModel: freePlan.pricingModel,
-        billingCycle: "monthly",
-        unitCount: 1,
-        onFreeTrial: false,
-        freeTrialEndsOn: null,
-        effectiveDate: now.toISOString(),
-        status: "active",
-        usageMonth: ym,
-        reviewsUsedThisMonth: 0,
-        updatedAt: now.toISOString()
-      };
+    if (method === "GET" && pathname === "/api/plans") {
+      return jsonResponse(200, { plans: ctx.plans });
     }
-    if (sub.usageMonth !== ym) {
-      sub = {
-        ...sub,
-        usageMonth: ym,
-        reviewsUsedThisMonth: 0
-      };
-    }
-    const plan = plans.find((p) => p.marketplacePlanId === sub.planId) ?? freePlan;
-    const limit = plan.entitlements.maxPrReviewsPerMonth;
-    if (limit !== null && sub.reviewsUsedThisMonth >= limit) {
-      this.upsert(sub);
-      return {
-        allowed: false,
-        reason: `Monthly PR review limit reached (${sub.reviewsUsedThisMonth}/${limit}) on the ${plan.name} plan.`,
-        subscription: sub,
-        plan
-      };
-    }
-    const updated = {
-      ...sub,
-      reviewsUsedThisMonth: sub.reviewsUsedThisMonth + 1,
-      updatedAt: now.toISOString()
-    };
-    this.upsert(updated);
-    return {
-      allowed: true,
-      subscription: updated,
-      plan
-    };
-  }
-  loadFromDisk(path) {
-    try {
-      const raw = (0, import_node_fs.readFileSync)(path, "utf8");
-      const items = JSON.parse(raw);
-      if (Array.isArray(items)) {
-        for (const item of items) {
-          if (item && typeof item.accountId === "number") {
-            this.records.set(item.accountId, item);
-          }
-        }
+    if (method === "GET" && pathname.startsWith("/api/billing/")) {
+      const accountId = Number.parseInt(pathname.slice("/api/billing/".length), 10);
+      if (!Number.isFinite(accountId)) {
+        return jsonResponse(400, { error: "Invalid accountId" });
       }
-    } catch {
+      const sub = ctx.store.get(accountId);
+      if (!sub) {
+        return jsonResponse(404, { error: "Subscription not found" });
+      }
+      return jsonResponse(200, { subscription: sub });
     }
+    if (method === "GET" && (pathname === "/" || pathname === "/billing" || pathname === "/setup")) {
+      const accountIdParam = url.searchParams.get("account_id");
+      const accountId = accountIdParam ? Number.parseInt(accountIdParam, 10) : Number.NaN;
+      const subscription = Number.isFinite(accountId) ? ctx.store.get(accountId) : void 0;
+      return htmlResponse(
+        200,
+        renderBillingDashboardHtml({
+          marketplaceSlug: ctx.runtime.marketplaceSlug,
+          plans: ctx.plans,
+          subscription
+        })
+      );
+    }
+    if (method === "POST" && pathname === "/webhooks/github") {
+      const rawBody = Buffer.from(await request.arrayBuffer());
+      const signature = request.headers.get("x-hub-signature-256") ?? void 0;
+      if (!verifyGitHubWebhookSignature(rawBody, signature, ctx.webhookSecret)) {
+        return jsonResponse(401, { error: "Invalid webhook signature" });
+      }
+      const eventName = (request.headers.get("x-github-event") ?? "").toLowerCase();
+      const payload = JSON.parse(rawBody.toString("utf8"));
+      if (eventName === "ping") {
+        return jsonResponse(200, { ok: true, event: "ping" });
+      }
+      if (eventName === "marketplace_purchase") {
+        const updated = handleMarketplacePurchaseEvent(
+          payload,
+          ctx.store,
+          ctx.plans
+        );
+        ctx.log(
+          `Marketplace event processed for ${updated.accountLogin} (#${updated.accountId}): plan=${updated.planName}, status=${updated.status}, units=${updated.unitCount}`
+        );
+        return jsonResponse(200, { ok: true, subscription: updated });
+      }
+      if (eventName === "pull_request") {
+        const outcome = await handlePullRequestWebhook(
+          payload,
+          ctx.runtime,
+          ctx.store,
+          ctx.plans,
+          ctx.log
+        );
+        return jsonResponse(outcome.status === "quota_exceeded" ? 402 : 200, outcome);
+      }
+      return jsonResponse(200, { ok: true, ignoredEvent: eventName });
+    }
+    return jsonResponse(404, { error: "Not found" });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    ctx.log(`Server error: ${message}`);
+    return jsonResponse(500, { error: "Internal server error" });
   }
-  persist() {
-    if (!this.filePath) return;
-    (0, import_node_fs.mkdirSync)((0, import_node_path.dirname)(this.filePath), { recursive: true });
-    (0, import_node_fs.writeFileSync)(
-      this.filePath,
-      JSON.stringify(Array.from(this.records.values()), null, 2),
-      "utf8"
-    );
-  }
-};
+}
 
 // src/app/server.ts
 var MAX_BODY_BYTES = 5 * 1024 * 1024;
-function sendJson(res, statusCode, body) {
-  const json = JSON.stringify(body);
-  res.writeHead(statusCode, {
-    "Content-Type": "application/json; charset=utf-8",
-    "Content-Length": Buffer.byteLength(json)
-  });
-  res.end(json);
-}
-function sendHtml(res, statusCode, html) {
-  res.writeHead(statusCode, {
-    "Content-Type": "text/html; charset=utf-8",
-    "Content-Length": Buffer.byteLength(html)
-  });
-  res.end(html);
-}
 function readRawBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -26120,101 +26212,64 @@ function readRawBody(req) {
     req.on("error", reject);
   });
 }
+function toHeaders(rawHeaders) {
+  const headers = new Headers();
+  for (const [key, value] of Object.entries(rawHeaders)) {
+    if (Array.isArray(value)) {
+      for (const item of value) headers.append(key, item);
+    } else if (typeof value === "string") {
+      headers.set(key, value);
+    }
+  }
+  return headers;
+}
 function createAppServer(options) {
-  const store = options.store ?? new SubscriptionStore(process.env.SUBSCRIPTION_STORE_PATH);
+  const storePath = process.env.SUBSCRIPTION_STORE_PATH;
+  const store = options.store ?? (storePath ? new FileSubscriptionStore(storePath) : new SubscriptionStore());
   const plans = options.plans ?? getMarketplacePlans();
   const log = options.log ?? ((msg) => console.log(`[diffpulse-app] ${msg}`));
   const server = (0, import_node_http.createServer)(async (req, res) => {
     try {
-      const url = new URL(req.url ?? "/", "http://localhost");
-      const method = req.method ?? "GET";
-      if (method === "GET" && url.pathname === "/health") {
-        sendJson(res, 200, { ok: true, service: "diffpulse-github-app" });
-        return;
-      }
-      if (method === "GET" && url.pathname === "/api/plans") {
-        sendJson(res, 200, { plans });
-        return;
-      }
-      if (method === "GET" && url.pathname.startsWith("/api/billing/")) {
-        const accountId = Number.parseInt(url.pathname.slice("/api/billing/".length), 10);
-        if (!Number.isFinite(accountId)) {
-          sendJson(res, 400, { error: "Invalid accountId" });
-          return;
-        }
-        const sub = store.get(accountId);
-        if (!sub) {
-          sendJson(res, 404, { error: "Subscription not found" });
-          return;
-        }
-        sendJson(res, 200, { subscription: sub });
-        return;
-      }
-      if (method === "GET" && (url.pathname === "/" || url.pathname === "/billing" || url.pathname === "/setup")) {
-        const accountIdParam = url.searchParams.get("account_id");
-        const accountId = accountIdParam ? Number.parseInt(accountIdParam, 10) : Number.NaN;
-        const subscription = Number.isFinite(accountId) ? store.get(accountId) : void 0;
-        const html = renderBillingDashboardHtml({
-          marketplaceSlug: options.runtime.marketplaceSlug,
-          plans,
-          subscription
-        });
-        sendHtml(res, 200, html);
-        return;
-      }
-      if (method === "POST" && url.pathname === "/webhooks/github") {
-        let rawBody;
+      const method = (req.method ?? "GET").toUpperCase();
+      const hasBody = method !== "GET" && method !== "HEAD";
+      let rawBody;
+      if (hasBody) {
         try {
           rawBody = await readRawBody(req);
         } catch (err) {
           if (err instanceof Error && err.message === "PAYLOAD_TOO_LARGE") {
-            sendJson(res, 413, { error: "Webhook payload exceeds 5 MB limit" });
+            res.writeHead(413, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: "Webhook payload exceeds 5 MB limit" }));
             return;
           }
           throw err;
         }
-        const signature = req.headers["x-hub-signature-256"];
-        if (!verifyGitHubWebhookSignature(rawBody, signature, options.webhookSecret)) {
-          sendJson(res, 401, { error: "Invalid webhook signature" });
-          return;
-        }
-        const eventName = String(req.headers["x-github-event"] ?? "").toLowerCase();
-        const payload = JSON.parse(rawBody.toString("utf8"));
-        if (eventName === "ping") {
-          sendJson(res, 200, { ok: true, event: "ping" });
-          return;
-        }
-        if (eventName === "marketplace_purchase") {
-          const updated = handleMarketplacePurchaseEvent(
-            payload,
-            store,
-            plans
-          );
-          log(
-            `Marketplace event processed for ${updated.accountLogin} (#${updated.accountId}): plan=${updated.planName}, status=${updated.status}, units=${updated.unitCount}`
-          );
-          sendJson(res, 200, { ok: true, subscription: updated });
-          return;
-        }
-        if (eventName === "pull_request") {
-          const outcome = await handlePullRequestWebhook(
-            payload,
-            options.runtime,
-            store,
-            plans,
-            log
-          );
-          sendJson(res, outcome.status === "quota_exceeded" ? 402 : 200, outcome);
-          return;
-        }
-        sendJson(res, 200, { ok: true, ignoredEvent: eventName });
-        return;
       }
-      sendJson(res, 404, { error: "Not found" });
+      const webReq = new Request(`http://localhost${req.url ?? "/"}`, {
+        method,
+        headers: toHeaders(req.headers),
+        body: rawBody ? new Uint8Array(rawBody) : void 0
+      });
+      const webRes = await handleAppRequest(webReq, {
+        webhookSecret: options.webhookSecret,
+        runtime: options.runtime,
+        store,
+        plans,
+        log
+      });
+      const responseBody = Buffer.from(await webRes.arrayBuffer());
+      const responseHeaders = {};
+      webRes.headers.forEach((value, key) => {
+        responseHeaders[key] = value;
+      });
+      responseHeaders["Content-Length"] = String(responseBody.length);
+      res.writeHead(webRes.status, responseHeaders);
+      res.end(responseBody);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       log(`Server error: ${message}`);
-      sendJson(res, 500, { error: "Internal server error" });
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Internal server error" }));
     }
   });
   return { server, store, plans };

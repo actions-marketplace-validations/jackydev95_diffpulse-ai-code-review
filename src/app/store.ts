@@ -1,5 +1,3 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname } from 'node:path';
 import { MarketplacePlanDefinition, PricingModel } from './plans';
 
 export type SubscriptionStatus = 'active' | 'pending_cancellation' | 'cancelled';
@@ -43,15 +41,7 @@ function currentYearMonth(now: Date = new Date()): string {
 }
 
 export class SubscriptionStore {
-  private readonly records = new Map<number, AccountSubscription>();
-  private readonly filePath?: string;
-
-  constructor(filePath?: string) {
-    this.filePath = filePath;
-    if (filePath && existsSync(filePath)) {
-      this.loadFromDisk(filePath);
-    }
-  }
+  protected readonly records = new Map<number, AccountSubscription>();
 
   get(accountId: number): AccountSubscription | undefined {
     return this.records.get(accountId);
@@ -63,7 +53,6 @@ export class SubscriptionStore {
 
   upsert(subscription: AccountSubscription): AccountSubscription {
     this.records.set(subscription.accountId, subscription);
-    this.persist();
     return subscription;
   }
 
@@ -134,31 +123,5 @@ export class SubscriptionStore {
       subscription: updated,
       plan,
     };
-  }
-
-  private loadFromDisk(path: string): void {
-    try {
-      const raw = readFileSync(path, 'utf8');
-      const items = JSON.parse(raw) as AccountSubscription[];
-      if (Array.isArray(items)) {
-        for (const item of items) {
-          if (item && typeof item.accountId === 'number') {
-            this.records.set(item.accountId, item);
-          }
-        }
-      }
-    } catch {
-      // Ignore corrupt/empty store file and start clean.
-    }
-  }
-
-  private persist(): void {
-    if (!this.filePath) return;
-    mkdirSync(dirname(this.filePath), { recursive: true });
-    writeFileSync(
-      this.filePath,
-      JSON.stringify(Array.from(this.records.values()), null, 2),
-      'utf8'
-    );
   }
 }

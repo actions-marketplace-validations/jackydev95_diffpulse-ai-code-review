@@ -1,14 +1,9 @@
 import { createServer, IncomingMessage, Server, ServerResponse } from 'node:http';
 import { AIProviderName } from '../review/types';
-import { renderBillingDashboardHtml } from './billingPage';
-import { handleMarketplacePurchaseEvent, MarketplaceWebhookPayload } from './marketplace';
+import { FileSubscriptionStore } from './fileStore';
 import { getMarketplacePlans, MarketplacePlanDefinition } from './plans';
-import {
-  AppServerRuntimeConfig,
-  handlePullRequestWebhook,
-  PullRequestWebhookPayload,
-} from './prHandler';
-import { verifyGitHubWebhookSignature } from './signature';
+import { AppServerRuntimeConfig } from './prHandler';
+import { handleAppRequest } from './router';
 import { SubscriptionStore } from './store';
 
 const MAX_BODY_BYTES = 5 * 1024 * 1024;
@@ -19,23 +14,6 @@ export interface CreateAppServerOptions {
   store?: SubscriptionStore;
   plans?: MarketplacePlanDefinition[];
   log?: (msg: string) => void;
-}
-
-function sendJson(res: ServerResponse, statusCode: number, body: unknown): void {
-  const json = JSON.stringify(body);
-  res.writeHead(statusCode, {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Content-Length': Buffer.byteLength(json),
-  });
-  res.end(json);
-}
-
-function sendHtml(res: ServerResponse, statusCode: number, html: string): void {
-  res.writeHead(statusCode, {
-    'Content-Type': 'text/html; charset=utf-8',
-    'Content-Length': Buffer.byteLength(html),
-  });
-  res.end(html);
 }
 
 function readRawBody(req: IncomingMessage): Promise<Buffer> {
@@ -57,6 +35,18 @@ function readRawBody(req: IncomingMessage): Promise<Buffer> {
   });
 }
 
+function toHeaders(rawHeaders: IncomingMessage['headers']): Headers {
+  const headers = new Headers();
+  for (const [key, value] of Object.entries(rawHeaders)) {
+    if (Array.isArray(value)) {
+      for (const item of value) headers.append(key, item);
+    } else if (typeof value === 'string') {
+      headers.set(key, value);
+    }
+  }
+  return headers;
+}
+
 /**
  * Creates the DiffPulse GitHub App & Marketplace Billing HTTP server.
  */
@@ -65,113 +55,60 @@ export function createAppServer(options: CreateAppServerOptions): {
   store: SubscriptionStore;
   plans: MarketplacePlanDefinition[];
 } {
-  const store = options.store ?? new SubscriptionStore(process.env.SUBSCRIPTION_STORE_PATH);
+  const storePath = process.env.SUBSCRIPTION_STORE_PATH;
+  const store =
+    options.store ??
+    (storePath ? new FileSubscriptionStore(storePath) : new SubscriptionStore());
   const plans = options.plans ?? getMarketplacePlans();
   const log = options.log ?? ((msg: string) => console.log(`[diffpulse-app] ${msg}`));
 
-  const server = createServer(async (req, res) => {
+  const server = createServer(async (req, res: ServerResponse) => {
     try {
-      const url = new URL(req.url ?? '/', 'http://localhost');
-      const method = req.method ?? 'GET';
+      const method = (req.method ?? 'GET').toUpperCase();
+      const hasBody = method !== 'GET' && method !== 'HEAD';
+      let rawBody: Buffer | undefined;
 
-      if (method === 'GET' && url.pathname === '/health') {
-        sendJson(res, 200, { ok: true, service: 'diffpulse-github-app' });
-        return;
-      }
-
-      if (method === 'GET' && url.pathname === '/api/plans') {
-        sendJson(res, 200, { plans });
-        return;
-      }
-
-      if (method === 'GET' && url.pathname.startsWith('/api/billing/')) {
-        const accountId = Number.parseInt(url.pathname.slice('/api/billing/'.length), 10);
-        if (!Number.isFinite(accountId)) {
-          sendJson(res, 400, { error: 'Invalid accountId' });
-          return;
-        }
-        const sub = store.get(accountId);
-        if (!sub) {
-          sendJson(res, 404, { error: 'Subscription not found' });
-          return;
-        }
-        sendJson(res, 200, { subscription: sub });
-        return;
-      }
-
-      if (method === 'GET' && (url.pathname === '/' || url.pathname === '/billing' || url.pathname === '/setup')) {
-        const accountIdParam = url.searchParams.get('account_id');
-        const accountId = accountIdParam ? Number.parseInt(accountIdParam, 10) : Number.NaN;
-        const subscription = Number.isFinite(accountId) ? store.get(accountId) : undefined;
-        const html = renderBillingDashboardHtml({
-          marketplaceSlug: options.runtime.marketplaceSlug,
-          plans,
-          subscription,
-        });
-        sendHtml(res, 200, html);
-        return;
-      }
-
-      if (method === 'POST' && url.pathname === '/webhooks/github') {
-        let rawBody: Buffer;
+      if (hasBody) {
         try {
           rawBody = await readRawBody(req);
         } catch (err) {
           if (err instanceof Error && err.message === 'PAYLOAD_TOO_LARGE') {
-            sendJson(res, 413, { error: 'Webhook payload exceeds 5 MB limit' });
+            res.writeHead(413, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Webhook payload exceeds 5 MB limit' }));
             return;
           }
           throw err;
         }
-
-        const signature = req.headers['x-hub-signature-256'] as string | undefined;
-        if (!verifyGitHubWebhookSignature(rawBody, signature, options.webhookSecret)) {
-          sendJson(res, 401, { error: 'Invalid webhook signature' });
-          return;
-        }
-
-        const eventName = String(req.headers['x-github-event'] ?? '').toLowerCase();
-        const payload = JSON.parse(rawBody.toString('utf8')) as unknown;
-
-        if (eventName === 'ping') {
-          sendJson(res, 200, { ok: true, event: 'ping' });
-          return;
-        }
-
-        if (eventName === 'marketplace_purchase') {
-          const updated = handleMarketplacePurchaseEvent(
-            payload as MarketplaceWebhookPayload,
-            store,
-            plans
-          );
-          log(
-            `Marketplace event processed for ${updated.accountLogin} (#${updated.accountId}): plan=${updated.planName}, status=${updated.status}, units=${updated.unitCount}`
-          );
-          sendJson(res, 200, { ok: true, subscription: updated });
-          return;
-        }
-
-        if (eventName === 'pull_request') {
-          const outcome = await handlePullRequestWebhook(
-            payload as PullRequestWebhookPayload,
-            options.runtime,
-            store,
-            plans,
-            log
-          );
-          sendJson(res, outcome.status === 'quota_exceeded' ? 402 : 200, outcome);
-          return;
-        }
-
-        sendJson(res, 200, { ok: true, ignoredEvent: eventName });
-        return;
       }
 
-      sendJson(res, 404, { error: 'Not found' });
+      const webReq = new Request(`http://localhost${req.url ?? '/'}`, {
+        method,
+        headers: toHeaders(req.headers),
+        body: rawBody ? new Uint8Array(rawBody) : undefined,
+      });
+
+      const webRes = await handleAppRequest(webReq, {
+        webhookSecret: options.webhookSecret,
+        runtime: options.runtime,
+        store,
+        plans,
+        log,
+      });
+
+      const responseBody = Buffer.from(await webRes.arrayBuffer());
+      const responseHeaders: Record<string, string> = {};
+      webRes.headers.forEach((value, key) => {
+        responseHeaders[key] = value;
+      });
+      responseHeaders['Content-Length'] = String(responseBody.length);
+
+      res.writeHead(webRes.status, responseHeaders);
+      res.end(responseBody);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       log(`Server error: ${message}`);
-      sendJson(res, 500, { error: 'Internal server error' });
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Internal server error' }));
     }
   });
 
@@ -207,8 +144,7 @@ export function startAppServerFromEnv(): Server {
   return server;
 }
 
-const isEntrypoint =
-  typeof require !== 'undefined' && require.main === module;
+const isEntrypoint = typeof require !== 'undefined' && require.main === module;
 
 if (isEntrypoint) {
   startAppServerFromEnv();

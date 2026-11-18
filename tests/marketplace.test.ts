@@ -10,6 +10,7 @@ import {
 } from '../src/app/marketplace';
 import { getMarketplacePlans } from '../src/app/plans';
 import { verifyGitHubWebhookSignature } from '../src/app/signature';
+import { FileSubscriptionStore } from '../src/app/fileStore';
 import { SubscriptionStore } from '../src/app/store';
 
 function makePurchasePayload(
@@ -70,7 +71,7 @@ describe('app/plans, signature, store & marketplace', () => {
     const dir = mkdtempSync(join(tmpdir(), 'diffpulse-store-'));
     try {
       const storePath = join(dir, 'subs.json');
-      const store = new SubscriptionStore(storePath);
+      const store = new FileSubscriptionStore(storePath);
       const plans = getMarketplacePlans({});
 
       // Purchased Pro flat-rate
@@ -131,7 +132,7 @@ describe('app/plans, signature, store & marketplace', () => {
       expect(upgraded.billingCycle).toBe('yearly');
 
       // Reload from disk to verify persistence
-      const reloaded = new SubscriptionStore(storePath);
+      const reloaded = new FileSubscriptionStore(storePath);
       expect(reloaded.get(9001)?.unitCount).toBe(5);
 
       // Immediate vs future cancellation
