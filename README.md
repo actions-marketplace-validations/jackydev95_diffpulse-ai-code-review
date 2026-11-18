@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run DiffPulse AI Code Review
-        uses: <your-github-username>/diffpulse-ai-code-review@v1
+        uses: jackydev95/diffpulse-ai-code-review@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           provider: openai
@@ -49,7 +49,7 @@ jobs:
 <summary>Anthropic Claude</summary>
 
 ```yaml
-- uses: <your-github-username>/diffpulse-ai-code-review@v1
+- uses: jackydev95/diffpulse-ai-code-review@v1
   with:
     provider: anthropic
     api-key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -62,7 +62,7 @@ jobs:
 <summary>Google Gemini</summary>
 
 ```yaml
-- uses: <your-github-username>/diffpulse-ai-code-review@v1
+- uses: jackydev95/diffpulse-ai-code-review@v1
   with:
     provider: gemini
     api-key: ${{ secrets.GEMINI_API_KEY }}
@@ -75,7 +75,7 @@ jobs:
 <summary>OpenAI-Compatible (OpenRouter / Groq / DeepSeek / Ollama)</summary>
 
 ```yaml
-- uses: <your-github-username>/diffpulse-ai-code-review@v1
+- uses: jackydev95/diffpulse-ai-code-review@v1
   with:
     provider: openai-compatible
     base-url: https://openrouter.ai/api/v1
@@ -89,7 +89,7 @@ jobs:
 <summary>Heuristic-Only (No LLM API Key Needed)</summary>
 
 ```yaml
-- uses: <your-github-username>/diffpulse-ai-code-review@v1
+- uses: jackydev95/diffpulse-ai-code-review@v1
   with:
     provider: heuristic-only
     fail-on-severity: high
@@ -175,7 +175,7 @@ OPENAI_API_KEY=... npm run review:local -- --provider openai --model gpt-4o-mini
 2. **Verify `action.yml` name uniqueness**:
    GitHub requires `name:` in `action.yml` to be globally unique across GitHub Marketplace. If `DiffPulse AI Code Review` is already taken when drafting your release, update `name:` in `action.yml`, commit, and push.
 3. **Draft a Release & Publish to Marketplace**:
-   - Open your repository on GitHub (`https://github.com/<you>/diffpulse-ai-code-review`) and click **action.yml** (you will see a banner: *"Publish this Action to the GitHub Marketplace"*), or go to **Releases → Draft a new release**.
+   - Open your repository on GitHub (`https://github.com/jackydev95/diffpulse-ai-code-review`) and click **action.yml** (you will see a banner: *"Publish this Action to the GitHub Marketplace"*), or go to **Releases → Draft a new release**.
    - Check **"Publish this Action to the GitHub Marketplace"**, accept the GitHub Marketplace Developer Agreement if prompted, select primary category **Code review** (and optional secondary **Code quality** or **Security**).
    - Set tag version to `v1.0.0`, target `main`, and click **Publish release**.
    - The included `.github/workflows/release.yml` workflow will automatically create/update the floating `v1` tag so users can reference `@v1`.
