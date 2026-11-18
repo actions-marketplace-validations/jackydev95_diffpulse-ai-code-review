@@ -180,6 +180,33 @@ OPENAI_API_KEY=... npm run review:local -- --provider openai --model gpt-4o-mini
    - Set tag version to `v1.0.0`, target `main`, and click **Publish release**.
    - The included `.github/workflows/release.yml` workflow will automatically create/update the floating `v1` tag so users can reference `@v1`.
 
+---
+
+## Paid GitHub App & Marketplace Pricing Plans Server
+
+GitHub Actions on GitHub Marketplace are free-only. To monetize directly through GitHub Marketplace billing, this repo also includes a standalone **GitHub App + Marketplace Billing Server** (`src/app/server.ts`, bundled to `dist/server.js`) that reuses the same review engine.
+
+### Configured Pricing Tiers (`src/app/plans.ts`)
+
+| Plan | Model | Monthly | Yearly | Free Trial | Entitlements |
+| --- | --- | --- | --- | --- | --- |
+| **Free** | `free` | \$0 | \$0 | — | Heuristics only, 50 PR reviews/month, up to 20 files |
+| **Pro Team** | `flat-rate` | \$29/mo | \$290/yr | 14 days | AI + heuristics, 500 PR reviews/month, `.diffpulse.yml` support |
+| **Business** | `per-unit` | \$12/seat/mo | \$120/seat/yr | 14 days | Unlimited PR reviews, up to 100 files, `AUTO` review approvals |
+
+### Running the Server
+
+```bash
+cp .env.example .env
+# Fill GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, GITHUB_WEBHOOK_SECRET, PLAN_ID_*, and AI_API_KEY
+npm run build
+npm run start:server
+```
+
+- **Webhook endpoint:** `POST /webhooks/github` (verifies `X-Hub-Signature-256`, handles `marketplace_purchase` and `pull_request` events)
+- **Setup / Billing UI:** `GET /billing` (or `GET /setup`) and `GET /api/billing/:accountId`
+- **Container deployment:** ready via [Dockerfile](Dockerfile)
+
 ## License
 
 [MIT](LICENSE)

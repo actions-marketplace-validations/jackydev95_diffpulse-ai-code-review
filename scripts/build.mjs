@@ -8,15 +8,25 @@ const rootDir = resolve(__dirname, '..');
 
 mkdirSync(resolve(rootDir, 'dist'), { recursive: true });
 
-await build({
-  entryPoints: [resolve(rootDir, 'src/index.ts')],
+const sharedOptions = {
   bundle: true,
   platform: 'node',
   target: 'node24',
   format: 'cjs',
-  outfile: resolve(rootDir, 'dist/index.js'),
   sourcemap: false,
   minify: false,
   legalComments: 'none',
   logLevel: 'info',
+};
+
+await build({
+  ...sharedOptions,
+  entryPoints: [resolve(rootDir, 'src/index.ts')],
+  outfile: resolve(rootDir, 'dist/index.js'),
+});
+
+await build({
+  ...sharedOptions,
+  entryPoints: [resolve(rootDir, 'src/app/server.ts')],
+  outfile: resolve(rootDir, 'dist/server.js'),
 });

@@ -8,7 +8,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check:dist": "npm run build && git diff --exit-code dist/index.js",
+    "check:dist": "npm run build && git diff --exit-code dist/index.js dist/server.js",
+    "start:server": "node dist/server.js",
     "review:local": "npx tsx src/cli.ts"
   },
   "keywords": [
