@@ -87,6 +87,7 @@ export function renderBillingDashboardHtml(options: {
       <section class="status-box">
         <h2>DiffPulse GitHub App & Marketplace Billing</h2>
         <p>Install or manage your subscription directly via GitHub Marketplace. Pass <code>?account_id=&lt;id&gt;</code> to inspect a specific organization's active plan and seat usage.</p>
+        <p><a class="btn" href="/install-app">1-Click GitHub App Setup (Manifest)</a></p>
       </section>
     `;
 

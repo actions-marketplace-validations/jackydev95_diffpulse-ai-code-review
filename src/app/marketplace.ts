@@ -51,14 +51,14 @@ function currentMonth(): string {
 /**
  * Processes a GitHub `marketplace_purchase` webhook event and updates the SubscriptionStore.
  */
-export function handleMarketplacePurchaseEvent(
+export async function handleMarketplacePurchaseEvent(
   payload: MarketplaceWebhookPayload,
   store: SubscriptionStore,
   plans: MarketplacePlanDefinition[]
-): AccountSubscription {
+): Promise<AccountSubscription> {
   const purchase = payload.marketplace_purchase;
   const account = purchase.account;
-  const existing = store.get(account.id);
+  const existing = await store.get(account.id);
   const matchedPlan = findPlanByMarketplaceId(purchase.plan.id, plans);
 
   const resolvedPlanName = matchedPlan?.name ?? purchase.plan.name;

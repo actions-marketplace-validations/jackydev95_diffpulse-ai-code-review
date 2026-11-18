@@ -2,7 +2,7 @@ import { createHmac } from 'node:crypto';
 import { AddressInfo } from 'node:net';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createAppServer } from '../src/app/server';
-import { SubscriptionStore } from '../src/app/store';
+import { InMemorySubscriptionStore } from '../src/app/store';
 
 function signBody(body: string, secret: string): string {
   return `sha256=${createHmac('sha256', secret).update(body).digest('hex')}`;
@@ -22,7 +22,7 @@ describe('app/server HTTP integration', () => {
     const secret = 'test-webhook-secret';
     const { server } = createAppServer({
       webhookSecret: secret,
-      store: new SubscriptionStore(),
+      store: new InMemorySubscriptionStore(),
       runtime: {
         appId: '101',
         privateKey: '',
@@ -107,5 +107,11 @@ describe('app/server HTTP integration', () => {
     expect(html).toContain('Current Subscription — demo-team');
     expect(html).toContain('8 purchased');
     expect(html).toContain('Manage Billing on GitHub Marketplace');
+
+    const installRes = await fetch(`${baseUrl}/install-app`);
+    expect(installRes.status).toBe(200);
+    const installHtml = await installRes.text();
+    expect(installHtml).toContain('1-Click GitHub App Setup');
+    expect(installHtml).toContain('/webhooks/github');
   });
 });

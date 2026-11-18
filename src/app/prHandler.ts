@@ -70,7 +70,7 @@ export async function handlePullRequestWebhook(
   }
 
   const owner = payload.repository.owner;
-  const quota = store.consumeReviewQuota(
+  const quota = await store.consumeReviewQuota(
     { id: owner.id, login: owner.login, type: owner.type },
     plans
   );

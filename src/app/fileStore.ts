@@ -1,11 +1,11 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { AccountSubscription, SubscriptionStore } from './store';
+import { AccountSubscription, InMemorySubscriptionStore } from './store';
 
 /**
  * File-backed SubscriptionStore for long-running Node/Docker deployments.
  */
-export class FileSubscriptionStore extends SubscriptionStore {
+export class FileSubscriptionStore extends InMemorySubscriptionStore {
   private readonly filePath: string;
 
   constructor(filePath: string) {
@@ -16,8 +16,8 @@ export class FileSubscriptionStore extends SubscriptionStore {
     }
   }
 
-  override upsert(subscription: AccountSubscription): AccountSubscription {
-    const saved = super.upsert(subscription);
+  override async upsert(subscription: AccountSubscription): Promise<AccountSubscription> {
+    const saved = await super.upsert(subscription);
     this.persist();
     return saved;
   }

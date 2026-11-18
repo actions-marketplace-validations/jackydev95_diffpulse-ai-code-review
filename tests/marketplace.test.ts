@@ -3,15 +3,16 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { FileSubscriptionStore } from '../src/app/fileStore';
 import { createGitHubAppJwt } from '../src/app/githubAppAuth';
 import {
   handleMarketplacePurchaseEvent,
   MarketplaceWebhookPayload,
 } from '../src/app/marketplace';
 import { getMarketplacePlans } from '../src/app/plans';
+import { RedisLike, RedisSubscriptionStore } from '../src/app/redisStore';
 import { verifyGitHubWebhookSignature } from '../src/app/signature';
-import { FileSubscriptionStore } from '../src/app/fileStore';
-import { SubscriptionStore } from '../src/app/store';
+import { InMemorySubscriptionStore } from '../src/app/store';
 
 function makePurchasePayload(
   action: MarketplaceWebhookPayload['action'],
@@ -67,15 +68,14 @@ describe('app/plans, signature, store & marketplace', () => {
     expect(verifyGitHubWebhookSignature(body, undefined, secret)).toBe(false);
   });
 
-  it('handles marketplace_purchase lifecycle and persists subscriptions', () => {
+  it('handles marketplace_purchase lifecycle and persists subscriptions', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'diffpulse-store-'));
     try {
       const storePath = join(dir, 'subs.json');
       const store = new FileSubscriptionStore(storePath);
       const plans = getMarketplacePlans({});
 
-      // Purchased Pro flat-rate
-      const created = handleMarketplacePurchaseEvent(
+      const created = await handleMarketplacePurchaseEvent(
         makePurchasePayload('purchased'),
         store,
         plans
@@ -84,8 +84,7 @@ describe('app/plans, signature, store & marketplace', () => {
       expect(created.status).toBe('active');
       expect(created.onFreeTrial).toBe(true);
 
-      // Pending downgrade
-      const pending = handleMarketplacePurchaseEvent(
+      const pending = await handleMarketplacePurchaseEvent(
         makePurchasePayload('pending_change', {
           plan: {
             id: 1,
@@ -100,16 +99,14 @@ describe('app/plans, signature, store & marketplace', () => {
       );
       expect(pending.pendingChange?.planName).toBe('Free');
 
-      // Cancel pending change
-      const cleared = handleMarketplacePurchaseEvent(
+      const cleared = await handleMarketplacePurchaseEvent(
         makePurchasePayload('pending_change_cancelled'),
         store,
         plans
       );
       expect(cleared.pendingChange).toBeUndefined();
 
-      // Upgrade to per-unit Business with 5 seats yearly
-      const upgraded = handleMarketplacePurchaseEvent(
+      const upgraded = await handleMarketplacePurchaseEvent(
         makePurchasePayload('changed', {
           billing_cycle: 'yearly',
           unit_count: 5,
@@ -131,19 +128,17 @@ describe('app/plans, signature, store & marketplace', () => {
       expect(upgraded.unitCount).toBe(5);
       expect(upgraded.billingCycle).toBe('yearly');
 
-      // Reload from disk to verify persistence
       const reloaded = new FileSubscriptionStore(storePath);
-      expect(reloaded.get(9001)?.unitCount).toBe(5);
+      expect((await reloaded.get(9001))?.unitCount).toBe(5);
 
-      // Immediate vs future cancellation
-      const pendingCancel = handleMarketplacePurchaseEvent(
+      const pendingCancel = await handleMarketplacePurchaseEvent(
         makePurchasePayload('cancelled', {}, '2099-01-01T00:00:00Z'),
         reloaded,
         plans
       );
       expect(pendingCancel.status).toBe('pending_cancellation');
 
-      const immediateCancel = handleMarketplacePurchaseEvent(
+      const immediateCancel = await handleMarketplacePurchaseEvent(
         makePurchasePayload('cancelled', {}, '2020-01-01T00:00:00Z'),
         reloaded,
         plans
@@ -154,23 +149,51 @@ describe('app/plans, signature, store & marketplace', () => {
     }
   });
 
-  it('enforces Free monthly quota and resets across month boundaries', () => {
-    const store = new SubscriptionStore();
+  it('persists subscriptions and enforces quotas via RedisSubscriptionStore', async () => {
+    const kv = new Map<string, unknown>();
+    const fakeRedis: RedisLike = {
+      async get<TData = unknown>(key: string) {
+        return (kv.get(key) as TData | undefined) ?? null;
+      },
+      async set(key: string, value: unknown) {
+        kv.set(key, value);
+        return 'OK';
+      },
+    };
+
+    const store = new RedisSubscriptionStore(fakeRedis);
+    const plans = getMarketplacePlans({});
+    await handleMarketplacePurchaseEvent(makePurchasePayload('purchased'), store, plans);
+
+    const fetched = await store.get(9001);
+    expect(fetched?.planName).toBe('Pro Team');
+
+    const quota = await store.consumeReviewQuota(
+      { id: 9001, login: 'acme-org', type: 'Organization' },
+      plans,
+      new Date('2026-11-18T10:00:00Z')
+    );
+    expect(quota.allowed).toBe(true);
+    expect(quota.subscription.reviewsUsedThisMonth).toBe(1);
+  });
+
+  it('enforces Free monthly quota and resets across month boundaries', async () => {
+    const store = new InMemorySubscriptionStore();
     const plans = getMarketplacePlans({});
     const account = { id: 77, login: 'octo', type: 'User' as const };
     const nov = new Date('2026-11-18T10:00:00Z');
 
     for (let i = 0; i < 50; i += 1) {
-      const res = store.consumeReviewQuota(account, plans, nov);
+      const res = await store.consumeReviewQuota(account, plans, nov);
       expect(res.allowed).toBe(true);
     }
 
-    const blocked = store.consumeReviewQuota(account, plans, nov);
+    const blocked = await store.consumeReviewQuota(account, plans, nov);
     expect(blocked.allowed).toBe(false);
     expect(blocked.reason).toContain('50/50');
 
     const dec = new Date('2026-12-01T00:00:00Z');
-    const reset = store.consumeReviewQuota(account, plans, dec);
+    const reset = await store.consumeReviewQuota(account, plans, dec);
     expect(reset.allowed).toBe(true);
     expect(reset.subscription.reviewsUsedThisMonth).toBe(1);
   });

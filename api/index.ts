@@ -1,11 +1,12 @@
 import { getMarketplacePlans } from '../src/app/plans';
+import { createServerlessStore } from '../src/app/redisStore';
 import { handleAppRequest } from '../src/app/router';
-import { SubscriptionStore } from '../src/app/store';
+import { InMemorySubscriptionStore } from '../src/app/store';
 import { AIProviderName } from '../src/review/types';
 
-// Note: On serverless Vercel Functions, process memory is ephemeral across cold starts.
-// Connect Upstash Redis or Postgres before processing live paid subscriptions.
-const store = new SubscriptionStore();
+// Uses Upstash Redis automatically when UPSTASH_REDIS_REST_URL / KV_REST_API_URL is set,
+// falling back to an in-memory store for initial setup and testing.
+const store = createServerlessStore() ?? new InMemorySubscriptionStore();
 
 async function dispatch(request: Request): Promise<Response> {
   const plans = getMarketplacePlans(process.env);

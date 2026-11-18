@@ -3,8 +3,9 @@ import { AIProviderName } from '../review/types';
 import { FileSubscriptionStore } from './fileStore';
 import { getMarketplacePlans, MarketplacePlanDefinition } from './plans';
 import { AppServerRuntimeConfig } from './prHandler';
+import { createServerlessStore } from './redisStore';
 import { handleAppRequest } from './router';
-import { SubscriptionStore } from './store';
+import { InMemorySubscriptionStore, SubscriptionStore } from './store';
 
 const MAX_BODY_BYTES = 5 * 1024 * 1024;
 
@@ -58,7 +59,10 @@ export function createAppServer(options: CreateAppServerOptions): {
   const storePath = process.env.SUBSCRIPTION_STORE_PATH;
   const store =
     options.store ??
-    (storePath ? new FileSubscriptionStore(storePath) : new SubscriptionStore());
+    createServerlessStore() ??
+    (storePath
+      ? new FileSubscriptionStore(storePath)
+      : new InMemorySubscriptionStore());
   const plans = options.plans ?? getMarketplacePlans();
   const log = options.log ?? ((msg: string) => console.log(`[diffpulse-app] ${msg}`));
 
