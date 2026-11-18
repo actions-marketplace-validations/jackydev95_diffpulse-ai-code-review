@@ -25,8 +25,14 @@ export function renderBillingDashboardHtml(options: {
   marketplaceSlug: string;
   plans: MarketplacePlanDefinition[];
   subscription?: AccountSubscription;
+  isMarketplaceConfigured?: boolean;
 }): string {
-  const { marketplaceSlug, plans, subscription } = options;
+  const {
+    marketplaceSlug,
+    plans,
+    subscription,
+    isMarketplaceConfigured = Boolean(subscription),
+  } = options;
   const safeSlug = encodeURIComponent(marketplaceSlug);
   const marketplaceBaseUrl = `https://github.com/marketplace/${safeSlug}`;
 
@@ -40,10 +46,24 @@ export function renderBillingDashboardHtml(options: {
             : `$${plan.monthlyPriceUsd}/${plan.unitName ?? 'unit'}/mo or $${plan.yearlyPriceUsd}/${plan.unitName ?? 'unit'}/yr (Per-unit)`;
 
       const isActive = subscription?.planId === plan.marketplacePlanId;
-      const upgradeUrl = `${marketplaceBaseUrl}/upgrade/${plan.marketplacePlanId}/${subscription?.accountId ?? ''}`.replace(
-        /\/$/,
-        ''
-      );
+
+      let actionHref = '/install-app';
+      let actionLabel = 'Setup GitHub App First';
+      let targetBlank = false;
+
+      if (isMarketplaceConfigured) {
+        targetBlank = true;
+        if (isActive) {
+          actionHref = marketplaceBaseUrl;
+          actionLabel = 'Manage on GitHub Marketplace';
+        } else if (subscription) {
+          actionHref = `${marketplaceBaseUrl}/upgrade/${plan.marketplacePlanId}/${subscription.accountId}`;
+          actionLabel = `Select ${plan.name}`;
+        } else {
+          actionHref = marketplaceBaseUrl;
+          actionLabel = `View ${plan.name} on Marketplace`;
+        }
+      }
 
       return `
         <div class="card ${isActive ? 'active' : ''}">
@@ -54,8 +74,8 @@ export function renderBillingDashboardHtml(options: {
           <ul>
             ${plan.bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join('')}
           </ul>
-          <a class="btn" href="${escapeHtml(isActive ? marketplaceBaseUrl : upgradeUrl)}" target="_blank" rel="noopener">
-            ${isActive ? 'Manage on GitHub Marketplace' : `Select ${escapeHtml(plan.name)}`}
+          <a class="btn ${isMarketplaceConfigured ? '' : 'secondary'}" href="${escapeHtml(actionHref)}" ${targetBlank ? 'target="_blank" rel="noopener"' : ''}>
+            ${escapeHtml(actionLabel)}
           </a>
         </div>
       `;
@@ -86,7 +106,11 @@ export function renderBillingDashboardHtml(options: {
     : `
       <section class="status-box">
         <h2>DiffPulse GitHub App & Marketplace Billing</h2>
-        <p>Install or manage your subscription directly via GitHub Marketplace. Pass <code>?account_id=&lt;id&gt;</code> to inspect a specific organization's active plan and seat usage.</p>
+        ${
+          isMarketplaceConfigured
+            ? `<p>Install or manage your subscription directly via GitHub Marketplace. Pass <code>?account_id=&lt;id&gt;</code> to inspect a specific organization's active plan and seat usage.</p>`
+            : `<p class="warn"><strong>Setup in progress:</strong> This server is live, but your GitHub App &amp; Marketplace listing haven't been linked yet (<code>GITHUB_APP_ID</code> / <code>PLAN_ID_*</code> are not set). Click below to create the GitHub App in 1 click, then publish its Marketplace listing.</p>`
+        }
         <p><a class="btn" href="/install-app">1-Click GitHub App Setup (Manifest)</a></p>
       </section>
     `;
@@ -115,7 +139,10 @@ export function renderBillingDashboardHtml(options: {
     li { margin-bottom: 6px; }
     .btn { display: inline-block; text-align: center; padding: 9px 14px; border-radius: 6px; background: #238636; color: #fff; text-decoration: none; font-weight: 600; margin-top: 10px; }
     .btn:hover { background: #2ea043; }
-    .pending { color: #d29922; }
+    .btn.secondary { background: #21262d; border: 1px solid #30363d; color: #c9d1d9; }
+    .btn.secondary:hover { background: #30363d; }
+    .pending, .warn { color: #d29922; }
+    code { background: #0d1117; padding: 2px 5px; border-radius: 4px; }
   </style>
 </head>
 <body>

@@ -115,12 +115,20 @@ export async function handleAppRequest(
       const subscription = Number.isFinite(accountId)
         ? await ctx.store.get(accountId)
         : undefined;
+      const isMarketplaceConfigured = Boolean(
+        subscription ||
+          (ctx.runtime.appId &&
+            (process.env.PLAN_ID_FREE ||
+              process.env.PLAN_ID_PRO ||
+              process.env.PLAN_ID_BUSINESS))
+      );
       return htmlResponse(
         200,
         renderBillingDashboardHtml({
           marketplaceSlug: ctx.runtime.marketplaceSlug,
           plans: ctx.plans,
           subscription,
+          isMarketplaceConfigured,
         })
       );
     }

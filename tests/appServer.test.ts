@@ -101,12 +101,19 @@ describe('app/server HTTP integration', () => {
       billingCycle: 'yearly',
     });
 
+    const unconfiguredHtmlRes = await fetch(`${baseUrl}/billing`);
+    expect(unconfiguredHtmlRes.status).toBe(200);
+    const unconfiguredHtml = await unconfiguredHtmlRes.text();
+    expect(unconfiguredHtml).toContain('Setup GitHub App First');
+    expect(unconfiguredHtml).not.toContain('/upgrade/2');
+
     const htmlRes = await fetch(`${baseUrl}/billing?account_id=555`);
     expect(htmlRes.status).toBe(200);
     const html = await htmlRes.text();
     expect(html).toContain('Current Subscription — demo-team');
     expect(html).toContain('8 purchased');
     expect(html).toContain('Manage Billing on GitHub Marketplace');
+    expect(html).toContain('/upgrade/2/555');
 
     const installRes = await fetch(`${baseUrl}/install-app`);
     expect(installRes.status).toBe(200);
